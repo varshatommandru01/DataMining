@@ -1,0 +1,84 @@
+-- 1. ROLL-UP
+-- Month → Year
+SELECT
+    d.year,
+    SUM(f.Amount) AS Total_Amount,
+    SUM(f.Boxes) AS Total_Boxes
+FROM fact_shipments f
+JOIN dim_date d
+    ON f.Shipdate = d.cal_date
+GROUP BY d.year
+ORDER BY d.year;
+
+
+-- 2. DRILL-DOWN
+-- Year → Month
+SELECT
+    d.year,
+    d.Month_num,
+    d.month_name,
+    SUM(f.Amount) AS Total_Amount,
+    SUM(f.Boxes) AS Total_Boxes
+FROM fact_shipments f
+JOIN dim_date d
+    ON f.Shipdate = d.cal_date
+GROUP BY d.year, d.Month_num, d.month_name
+ORDER BY d.year, d.Month_num;
+
+
+-- 3. SLICE
+-- Select one year
+SELECT
+    f.ShipmentID,
+    f.Shipdate,
+    f.Amount,
+    f.Boxes,
+    f.Order_Status
+FROM fact_shipments f
+JOIN dim_date d
+    ON f.Shipdate = d.cal_date
+WHERE d.year = 2025;
+
+
+-- 4. DICE
+-- Select data using multiple dimensions
+SELECT
+    d.year,
+    g.Region,
+    p.Category,
+    SUM(f.Amount) AS Total_Amount,
+    SUM(f.Boxes) AS Total_Boxes
+FROM fact_shipments f
+JOIN dim_date d
+    ON f.Shipdate = d.cal_date
+JOIN dim_geo g
+    ON f.GID = g.GID
+JOIN dim_product p
+    ON f.PID = p.PID
+WHERE d.year = 2025
+  AND g.Region = 'North'
+  AND p.Category = 'Bars'
+GROUP BY d.year, g.Region, p.Category;
+
+
+-- 5. PIVOT
+-- Year × Order Status
+SELECT
+    d.year,
+    SUM(CASE
+        WHEN f.Order_Status = 'Delivered'
+        THEN f.Amount ELSE 0
+    END) AS Delivered_Amount,
+    SUM(CASE
+        WHEN f.Order_Status = 'Pending'
+        THEN f.Amount ELSE 0
+    END) AS Pending_Amount,
+    SUM(CASE
+        WHEN f.Order_Status = 'Cancelled'
+        THEN f.Amount ELSE 0
+    END) AS Cancelled_Amount
+FROM fact_shipments f
+JOIN dim_date d
+    ON f.Shipdate = d.cal_date
+GROUP BY d.year
+ORDER BY d.year;

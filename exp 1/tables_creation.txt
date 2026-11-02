@@ -1,0 +1,99 @@
+CREATE DATABASE IF NOT EXISTS sales_dw;
+
+USE sales_dw;
+
+
+-- =========================================
+-- 1. PRODUCT DIMENSION
+-- =========================================
+
+CREATE TABLE dim_product (
+    PID VARCHAR(20) NOT NULL,
+    Product VARCHAR(100) NOT NULL,
+    Category VARCHAR(50),
+    Cost_per_box DECIMAL(10,2),
+
+    CONSTRAINT pk_dim_product
+        PRIMARY KEY (PID)
+);
+
+
+-- =========================================
+-- 2. GEOGRAPHY DIMENSION
+-- =========================================
+
+CREATE TABLE dim_geo (
+    GID VARCHAR(20) NOT NULL,
+    Geo VARCHAR(100) NOT NULL,
+    Region VARCHAR(50),
+
+    CONSTRAINT pk_dim_geo
+        PRIMARY KEY (GID)
+);
+
+
+-- =========================================
+-- 3. SALESPERSON DIMENSION
+-- =========================================
+
+CREATE TABLE dim_salesperson (
+    SPID VARCHAR(20) NOT NULL,
+    Sales_person VARCHAR(100) NOT NULL,
+    Team VARCHAR(50),
+    Picture VARCHAR(500),
+
+    CONSTRAINT pk_dim_salesperson
+        PRIMARY KEY (SPID)
+);
+
+
+-- =========================================
+-- 4. DATE DIMENSION
+-- =========================================
+
+CREATE TABLE dim_date (
+    cal_date DATE NOT NULL,
+    Month_num INT,
+    month_name VARCHAR(20),
+    year INT,
+    weekday_num INT,
+    weekday_name VARCHAR(20),
+
+    CONSTRAINT pk_dim_date
+        PRIMARY KEY (cal_date)
+);
+
+
+-- =========================================
+-- 5. FACT TABLE
+-- =========================================
+
+CREATE TABLE fact_shipments (
+    ShipmentID VARCHAR(20) NOT NULL,
+    SPID VARCHAR(20) NOT NULL,
+    PID VARCHAR(20) NOT NULL,
+    GID VARCHAR(20) NOT NULL,
+    Shipdate DATE NOT NULL,
+    Amount DECIMAL(12,2),
+    Boxes INT,
+    Order_Status VARCHAR(30),
+
+    CONSTRAINT pk_fact_shipments
+        PRIMARY KEY (ShipmentID),
+
+    CONSTRAINT fk_fact_salesperson
+        FOREIGN KEY (SPID)
+        REFERENCES dim_salesperson(SPID),
+
+    CONSTRAINT fk_fact_product
+        FOREIGN KEY (PID)
+        REFERENCES dim_product(PID),
+
+    CONSTRAINT fk_fact_geo
+        FOREIGN KEY (GID)
+        REFERENCES dim_geo(GID),
+
+    CONSTRAINT fk_fact_date
+        FOREIGN KEY (Shipdate)
+        REFERENCES dim_date(cal_date)
+);
